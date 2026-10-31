@@ -179,6 +179,27 @@
             Get Token Guard — $19
           </a>
           <span class="text-[11px] text-slate-400 text-center">Unlimited commercial license · Instant download</span>
+          <span class="text-[11px] text-slate-500 text-center">Built by <a href="https://github.com/manoharpiridi-stack" target="_blank" rel="noopener noreferrer" class="text-amber-400 hover:text-amber-300 underline">@manoharpiridi-stack</a></span>
+        </div>
+      </div>
+
+      <!-- What's inside -->
+      <div class="relative z-10 mt-6 pt-6 border-t border-amber-500/20 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+        <div class="bg-slate-900/60 rounded-xl p-4 border border-slate-700/50">
+          <h4 class="font-semibold text-amber-300 mb-1">🐍 Python package</h4>
+          <p class="text-slate-400"><code class="text-slate-300">token_guard.py</code> with hard USD budget caps and loop detection.</p>
+        </div>
+        <div class="bg-slate-900/60 rounded-xl p-4 border border-slate-700/50">
+          <h4 class="font-semibold text-amber-300 mb-1">🟦 TypeScript / Node.js package</h4>
+          <p class="text-slate-400"><code class="text-slate-300">tokenGuard.ts</code> with the same caps and loop detection.</p>
+        </div>
+        <div class="bg-slate-900/60 rounded-xl p-4 border border-slate-700/50">
+          <h4 class="font-semibold text-amber-300 mb-1">✅ Unit test suite</h4>
+          <p class="text-slate-400">Tests included, so you can check the behavior before you rely on it.</p>
+        </div>
+        <div class="bg-slate-900/60 rounded-xl p-4 border border-slate-700/50">
+          <h4 class="font-semibold text-amber-300 mb-1">📋 Copy-paste recipes</h4>
+          <p class="text-slate-400">Integration examples for OpenAI, Anthropic Claude, and Google Gemini.</p>
         </div>
       </div>
     </section>
@@ -238,8 +259,9 @@
       { name: 'Claude Fable 5.1',   provider: 'Anthropic', tier: 'flagship',  inputPer1M: 10.00,  outputPer1M: 50.00, color: 'anthropic' },
       { name: 'Claude Opus 5.5',    provider: 'Anthropic', tier: 'flagship',  inputPer1M: 4.00,   outputPer1M: 20.00, color: 'anthropic' },
       { name: 'Claude Sonnet 5.5',  provider: 'Anthropic', tier: 'mid',       inputPer1M: 2.00,   outputPer1M: 10.00, color: 'anthropic' },
-      { name: 'Claude Haiku 5.5',   provider: 'Anthropic', tier: 'budget',    inputPer1M: 1.00,   outputPer1M: 5.00,  color: 'anthropic' },
-      { name: 'Claude Haiku 4.5',   provider: 'Anthropic', tier: 'economy',   inputPer1M: 0.10,   outputPer1M: 0.50,  color: 'anthropic' },
+      { name: 'Claude Haiku 5.5',   provider: 'Anthropic', tier: 'economy',   inputPer1M: 0.10,   outputPer1M: 0.50,  color: 'anthropic',
+        longContext: { threshold: 100_000, inputPer1M: 0.50, outputPer1M: 2.50 }, note: 'Prompts over 100K tokens: $0.50 / $2.50 per 1M' },
+      { name: 'Claude Haiku 4.5',   provider: 'Anthropic', tier: 'budget',    inputPer1M: 1.00,   outputPer1M: 5.00,  color: 'anthropic' },
 
       // Google Gemini
       { name: 'Gemini 4 Argon',     provider: 'Google',    tier: 'flagship',  inputPer1M: 2.00,   outputPer1M: 10.00, color: 'google', note: 'Promo pricing until Nov 30 — doubles Dec 1' },
@@ -289,8 +311,10 @@
       const totalOutputTokens = reqPerDay * outTok * mult;
 
       const results = MODELS.map(m => {
-        const inputCost = (totalInputTokens / 1_000_000) * m.inputPer1M;
-        const outputCost = (totalOutputTokens / 1_000_000) * m.outputPer1M;
+        // Some models charge a higher rate when a single prompt exceeds a size threshold
+        const rates = m.longContext && inTok > m.longContext.threshold ? m.longContext : m;
+        const inputCost = (totalInputTokens / 1_000_000) * rates.inputPer1M;
+        const outputCost = (totalOutputTokens / 1_000_000) * rates.outputPer1M;
         const totalCost = inputCost + outputCost;
         const costPer1KReq = reqPerDay > 0 ? (totalCost / (reqPerDay * mult)) * 1000 : 0;
         return { ...m, inputCost, outputCost, totalCost, costPer1KReq };
