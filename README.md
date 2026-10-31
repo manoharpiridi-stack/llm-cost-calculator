@@ -32,7 +32,7 @@ Zero dependencies. Zero build step. Just open the file:
 
 ```bash
 # Clone the repo
-git clone https://github.com/YOUR_USERNAME/llm-cost-calculator.git
+git clone https://github.com/manoharpiridi-stack/llm-cost-calculator.git
 
 # Open in browser
 open index.html
@@ -92,7 +92,7 @@ All pricing is sourced from **official API documentation** (OpenAI, Anthropic, G
 1. Push this repo to GitHub
 2. Go to **Settings → Pages**
 3. Set source to **main branch**, root folder
-4. Your site is live at `https://YOUR_USERNAME.github.io/llm-cost-calculator/`
+4. Your site is live at `https://manoharpiridi-stack.github.io/llm-cost-calculator/`
 
 ### Vercel / Netlify
 
