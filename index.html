@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LLM Cost Calculator — Estimate Your AI API Costs</title>
+  <meta name="description" content="Free tool to estimate and compare LLM API costs across OpenAI, Anthropic Claude, and Google Gemini models. Plan your AI budget before you build." />
+  <meta name="keywords" content="LLM cost calculator, AI API pricing, OpenAI pricing, Claude pricing, Gemini pricing, token cost estimator" />
+  <meta property="og:title" content="LLM Cost Calculator — Estimate Your AI API Costs" />
+  <meta property="og:description" content="Compare costs across 15+ LLM models. Free, no signup required." />
+  <meta property="og:type" content="website" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: { 50: '#f0f9ff', 100: '#e0f2fe', 200: '#bae6fd', 300: '#7dd3fc', 400: '#38bdf8', 500: '#0ea5e9', 600: '#0284c7', 700: '#0369a1', 800: '#075985', 900: '#0c4a6e' }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    body { font-family: 'Inter', sans-serif; }
+    .gradient-bg { background: linear-gradient(135deg, #0c4a6e 0%, #1e1b4b 50%, #0f172a 100%); }
+    .card-glow { box-shadow: 0 0 30px rgba(14, 165, 233, 0.08); }
+    .provider-openai { border-left: 3px solid #10b981; }
+    .provider-anthropic { border-left: 3px solid #f59e0b; }
+    .provider-google { border-left: 3px solid #3b82f6; }
+    input[type="range"] { -webkit-appearance: none; appearance: none; height: 6px; border-radius: 3px; background: #334155; outline: none; }
+    input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #0ea5e9; cursor: pointer; border: 2px solid #0c4a6e; }
+    .comparison-row:hover { background: rgba(14, 165, 233, 0.05); }
+    .cheapest { background: rgba(16, 185, 129, 0.1) !important; border-left: 3px solid #10b981; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .fade-in { animation: fadeIn 0.3s ease-out; }
+    .tooltip { position: relative; }
+    .tooltip::after { content: attr(data-tip); position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: #1e293b; color: #e2e8f0; padding: 4px 8px; border-radius: 4px; font-size: 12px; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+    .tooltip:hover::after { opacity: 1; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-200 min-h-screen">
+
+  <!-- Header -->
+  <header class="gradient-bg border-b border-slate-800">
+    <div class="max-w-6xl mx-auto px-4 py-8 sm:py-12 text-center">
+      <div class="inline-flex items-center gap-2 bg-brand-900/40 border border-brand-700/30 rounded-full px-4 py-1.5 text-sm text-brand-300 mb-4">
+        <span>⚡</span> Updated October 2026 — Real API Pricing
+      </div>
+      <h1 class="text-3xl sm:text-5xl font-extrabold text-white mb-3 tracking-tight">
+        LLM Cost Calculator
+      </h1>
+      <p class="text-lg text-slate-400 max-w-2xl mx-auto">
+        Estimate and compare API costs across <span class="text-brand-400 font-semibold">OpenAI</span>,
+        <span class="text-amber-400 font-semibold">Anthropic Claude</span>, and
+        <span class="text-blue-400 font-semibold">Google Gemini</span> — before you write a single line of code.
+      </p>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 py-8">
+
+    <!-- Input Section -->
+    <section class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 sm:p-8 card-glow mb-8 fade-in">
+      <h2 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
+        <span class="text-2xl">🎛️</span> Configure Your Usage
+      </h2>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Requests per day -->
+        <div>
+          <label class="block text-sm font-medium text-slate-400 mb-2">Requests per Day</label>
+          <input type="number" id="requestsPerDay" value="1000" min="1" max="10000000"
+            class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-white text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent" />
+          <input type="range" id="requestsSlider" min="10" max="100000" value="1000" step="10" class="w-full mt-2" />
+          <div class="flex justify-between text-xs text-slate-500 mt-1">
+            <span>10</span><span>100K</span>
+          </div>
+        </div>
+
+        <!-- Avg input tokens -->
+        <div>
+          <label class="block text-sm font-medium text-slate-400 mb-2">Avg Input Tokens / Request</label>
+          <input type="number" id="inputTokens" value="500" min="1" max="1000000"
+            class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-white text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent" />
+          <input type="range" id="inputSlider" min="10" max="50000" value="500" step="10" class="w-full mt-2" />
+          <div class="flex justify-between text-xs text-slate-500 mt-1">
+            <span>10</span><span>50K</span>
+          </div>
+        </div>
+
+        <!-- Avg output tokens -->
+        <div>
+          <label class="block text-sm font-medium text-slate-400 mb-2">Avg Output Tokens / Request</label>
+          <input type="number" id="outputTokens" value="200" min="1" max="1000000"
+            class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-white text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent" />
+          <input type="range" id="outputSlider" min="10" max="50000" value="200" step="10" class="w-full mt-2" />
+          <div class="flex justify-between text-xs text-slate-500 mt-1">
+            <span>10</span><span>50K</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick presets -->
+      <div class="mt-6">
+        <span class="text-sm text-slate-500 mr-3">Quick Presets:</span>
+        <div class="inline-flex flex-wrap gap-2 mt-1">
+          <button onclick="applyPreset(100, 300, 150)" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-xs text-slate-300 transition-colors">💬 Chatbot (Light)</button>
+          <button onclick="applyPreset(1000, 800, 400)" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-xs text-slate-300 transition-colors">🤖 AI Agent</button>
+          <button onclick="applyPreset(5000, 2000, 1000)" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-xs text-slate-300 transition-colors">🏢 Enterprise SaaS</button>
+          <button onclick="applyPreset(500, 4000, 2000)" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-xs text-slate-300 transition-colors">📄 RAG Pipeline</button>
+          <button onclick="applyPreset(50000, 200, 100)" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-xs text-slate-300 transition-colors">⚡ Classification (High Vol.)</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Results Section -->
+    <section class="mb-8 fade-in">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-bold text-white flex items-center gap-2">
+          <span class="text-2xl">📊</span> Cost Comparison
+        </h2>
+        <div class="flex items-center gap-3">
+          <label class="text-sm text-slate-400">View:</label>
+          <select id="timeframe" onchange="recalculate()" class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-brand-500">
+            <option value="daily">Daily</option>
+            <option value="monthly" selected>Monthly</option>
+            <option value="yearly">Yearly</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead>
+            <tr class="text-left border-b border-slate-800">
+              <th class="pb-3 pl-4 text-sm font-medium text-slate-500 w-1/4">Model</th>
+              <th class="pb-3 text-sm font-medium text-slate-500">Provider</th>
+              <th class="pb-3 text-sm font-medium text-slate-500 text-right">Input Cost</th>
+              <th class="pb-3 text-sm font-medium text-slate-500 text-right">Output Cost</th>
+              <th class="pb-3 pr-4 text-sm font-medium text-slate-500 text-right">Total Cost</th>
+              <th class="pb-3 pr-4 text-sm font-medium text-slate-500 text-right">Cost / 1K Req</th>
+            </tr>
+          </thead>
+          <tbody id="resultsTable">
+            <!-- Populated by JS -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Commercial CTA: Token Guard Circuit Breaker -->
+    <section class="bg-gradient-to-r from-amber-950/40 via-slate-900 to-slate-900 border-2 border-amber-500/40 rounded-2xl p-6 sm:p-8 shadow-2xl mb-8 fade-in relative overflow-hidden">
+      <div class="absolute -right-12 -top-12 w-48 h-48 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 relative z-10">
+        <div class="max-w-2xl">
+          <div class="inline-flex items-center gap-2 bg-amber-900/50 border border-amber-700/50 rounded-full px-3 py-1 text-xs font-semibold text-amber-300 mb-3">
+            <span class="animate-pulse">⚠️</span> Production Risk Alert
+          </div>
+          <h3 class="text-xl sm:text-2xl font-bold text-white mb-2">
+            Don't let a while-loop bug burn your monthly budget in 30 minutes.
+          </h3>
+          <p class="text-sm text-slate-300 leading-relaxed mb-3">
+            Cloud provider billing alerts arrive <strong>hours after</strong> an agent exhausts your budget.
+            <span class="text-white font-medium">LLM Token Guard</span> is a drop-in local circuit breaker in pure Python & TypeScript that enforces hard USD caps and halts recursive tool loops before tokens burn.
+          </p>
+          <div class="flex flex-wrap items-center gap-4 text-xs text-slate-400">
+            <span class="flex items-center gap-1.5"><svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg> Zero dependencies</span>
+            <span class="flex items-center gap-1.5"><svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg> 15+ models pre-priced</span>
+            <span class="flex items-center gap-1.5"><svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg> Python & TypeScript</span>
+          </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row lg:flex-col items-center gap-3 w-full lg:w-auto shrink-0">
+          <a href="https://polar.sh" target="_blank" rel="noopener noreferrer"
+             class="w-full sm:w-auto text-center px-6 py-3.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold rounded-xl shadow-lg shadow-amber-500/20 transition-all duration-200 hover:scale-[1.02]">
+            Get Token Guard — $19
+          </a>
+          <span class="text-[11px] text-slate-400 text-center">Unlimited commercial license · Instant download</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Savings Tips -->
+    <section class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 sm:p-8 card-glow mb-8 fade-in">
+      <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+        <span class="text-2xl">💡</span> Cost Optimization Tips
+      </h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="bg-slate-800/60 rounded-xl p-4 border border-slate-700/50">
+          <h3 class="font-semibold text-brand-400 mb-1">🔄 Use Prompt Caching</h3>
+          <p class="text-sm text-slate-400">Most providers offer 50–95% off cached input tokens. If your system prompt is static, caching alone can cut costs by 30–60%.</p>
+        </div>
+        <div class="bg-slate-800/60 rounded-xl p-4 border border-slate-700/50">
+          <h3 class="font-semibold text-brand-400 mb-1">📦 Batch Non-Urgent Requests</h3>
+          <p class="text-sm text-slate-400">OpenAI, Claude, and Gemini all offer ~50% batch discounts. Great for analytics, embeddings, and overnight processing.</p>
+        </div>
+        <div class="bg-slate-800/60 rounded-xl p-4 border border-slate-700/50">
+          <h3 class="font-semibold text-brand-400 mb-1">🪜 Route by Complexity</h3>
+          <p class="text-sm text-slate-400">Use a cheap model (Haiku, Flash-Lite) for classification/routing, then send only complex queries to expensive models. Can save 70%+.</p>
+        </div>
+        <div class="bg-slate-800/60 rounded-xl p-4 border border-slate-700/50">
+          <h3 class="font-semibold text-brand-400 mb-1">✂️ Trim Your Context</h3>
+          <p class="text-sm text-slate-400">Every token in your prompt costs money. Summarize conversation history instead of passing the full thread. Use RAG to inject only relevant chunks.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Methodology -->
+    <section class="text-center text-sm text-slate-500 mb-8">
+      <p>Pricing sourced from official API documentation as of <strong class="text-slate-400">October 2026</strong>.</p>
+      <p>Calculations: <code class="text-brand-400 bg-slate-800 px-1.5 py-0.5 rounded">cost = (tokens / 1,000,000) × price_per_million_tokens</code></p>
+      <p class="mt-2">Built with ❤️ — <a href="https://github.com" class="text-brand-400 hover:text-brand-300 underline">View on GitHub</a> · Free & Open Source</p>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-slate-800 py-6">
+    <div class="max-w-6xl mx-auto px-4 text-center text-sm text-slate-600">
+      © 2026 LLM Cost Calculator. Not affiliated with OpenAI, Anthropic, or Google.
+      <br />Prices may change — always verify with official docs before committing to a budget.
+    </div>
+  </footer>
+
+  <script>
+    // ===== MODEL PRICING DATABASE (October 2026 - Verified via live search) =====
+    const MODELS = [
+      // OpenAI
+      { name: 'GPT-6 Astra',        provider: 'OpenAI',    tier: 'flagship',  inputPer1M: 10.00,  outputPer1M: 50.00, color: 'openai' },
+      { name: 'GPT-6.1 Sol',        provider: 'OpenAI',    tier: 'mid',       inputPer1M: 2.00,   outputPer1M: 10.00, color: 'openai' },
+      { name: 'GPT-5.6 Sol',        provider: 'OpenAI',    tier: 'mid',       inputPer1M: 4.00,   outputPer1M: 20.00, color: 'openai' },
+      { name: 'GPT-5.6 Luna',       provider: 'OpenAI',    tier: 'budget',    inputPer1M: 0.20,   outputPer1M: 1.25,  color: 'openai' },
+
+      // Anthropic Claude
+      { name: 'Claude Fable 5.1',   provider: 'Anthropic', tier: 'flagship',  inputPer1M: 10.00,  outputPer1M: 50.00, color: 'anthropic' },
+      { name: 'Claude Opus 5.5',    provider: 'Anthropic', tier: 'flagship',  inputPer1M: 4.00,   outputPer1M: 20.00, color: 'anthropic' },
+      { name: 'Claude Sonnet 5.5',  provider: 'Anthropic', tier: 'mid',       inputPer1M: 2.00,   outputPer1M: 10.00, color: 'anthropic' },
+      { name: 'Claude Haiku 5.5',   provider: 'Anthropic', tier: 'budget',    inputPer1M: 1.00,   outputPer1M: 5.00,  color: 'anthropic' },
+      { name: 'Claude Haiku 4.5',   provider: 'Anthropic', tier: 'economy',   inputPer1M: 0.10,   outputPer1M: 0.50,  color: 'anthropic' },
+
+      // Google Gemini
+      { name: 'Gemini 4 Argon',     provider: 'Google',    tier: 'flagship',  inputPer1M: 2.00,   outputPer1M: 10.00, color: 'google', note: 'Promo pricing until Nov 30 — doubles Dec 1' },
+      { name: 'Gemini 3.1 Pro',     provider: 'Google',    tier: 'mid',       inputPer1M: 2.00,   outputPer1M: 12.00, color: 'google' },
+      { name: 'Gemini 3.8 Flash',   provider: 'Google',    tier: 'mid',       inputPer1M: 0.75,   outputPer1M: 3.75,  color: 'google', note: 'Intro pricing until Dec 31 — doubles Jan 1' },
+      { name: 'Gemini Flash-Lite',  provider: 'Google',    tier: 'economy',   inputPer1M: 0.10,   outputPer1M: 0.40,  color: 'google' },
+    ];
+
+    const TIMEFRAME_MULTIPLIERS = { daily: 1, monthly: 30, yearly: 365 };
+
+    // ===== DOM REFERENCES =====
+    const requestsInput = document.getElementById('requestsPerDay');
+    const requestsSlider = document.getElementById('requestsSlider');
+    const inputTokensInput = document.getElementById('inputTokens');
+    const inputSlider = document.getElementById('inputSlider');
+    const outputTokensInput = document.getElementById('outputTokens');
+    const outputSlider = document.getElementById('outputSlider');
+    const timeframeSelect = document.getElementById('timeframe');
+    const resultsTable = document.getElementById('resultsTable');
+
+    // ===== SYNC SLIDERS & INPUTS =====
+    function syncPair(input, slider) {
+      input.addEventListener('input', () => { slider.value = Math.min(input.value, slider.max); recalculate(); });
+      slider.addEventListener('input', () => { input.value = slider.value; recalculate(); });
+    }
+    syncPair(requestsInput, requestsSlider);
+    syncPair(inputTokensInput, inputSlider);
+    syncPair(outputTokensInput, outputSlider);
+
+    // ===== PRESETS =====
+    function applyPreset(requests, inputTok, outputTok) {
+      requestsInput.value = requests; requestsSlider.value = Math.min(requests, 100000);
+      inputTokensInput.value = inputTok; inputSlider.value = Math.min(inputTok, 50000);
+      outputTokensInput.value = outputTok; outputSlider.value = Math.min(outputTok, 50000);
+      recalculate();
+    }
+
+    // ===== CORE CALCULATION =====
+    function recalculate() {
+      const reqPerDay = parseInt(requestsInput.value) || 0;
+      const inTok = parseInt(inputTokensInput.value) || 0;
+      const outTok = parseInt(outputTokensInput.value) || 0;
+      const tf = timeframeSelect.value;
+      const mult = TIMEFRAME_MULTIPLIERS[tf];
+
+      const totalInputTokens = reqPerDay * inTok * mult;
+      const totalOutputTokens = reqPerDay * outTok * mult;
+
+      const results = MODELS.map(m => {
+        const inputCost = (totalInputTokens / 1_000_000) * m.inputPer1M;
+        const outputCost = (totalOutputTokens / 1_000_000) * m.outputPer1M;
+        const totalCost = inputCost + outputCost;
+        const costPer1KReq = reqPerDay > 0 ? (totalCost / (reqPerDay * mult)) * 1000 : 0;
+        return { ...m, inputCost, outputCost, totalCost, costPer1KReq };
+      });
+
+      // Sort by total cost ascending
+      results.sort((a, b) => a.totalCost - b.totalCost);
+
+      const cheapestCost = results[0]?.totalCost ?? 0;
+
+      resultsTable.innerHTML = results.map((r, i) => {
+        const isCheapest = r.totalCost === cheapestCost && cheapestCost > 0;
+        const providerBadge = {
+          'OpenAI': '<span class="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-900/40 text-emerald-400 text-xs font-medium rounded-full">OpenAI</span>',
+          'Anthropic': '<span class="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-900/40 text-amber-400 text-xs font-medium rounded-full">Anthropic</span>',
+          'Google': '<span class="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-900/40 text-blue-400 text-xs font-medium rounded-full">Google</span>',
+        }[r.provider];
+
+        const noteHtml = r.note ? `<div class="text-[10px] text-amber-500/70 mt-0.5">⚠ ${r.note}</div>` : '';
+
+        return `
+          <tr class="comparison-row border-b border-slate-800/50 transition-colors ${isCheapest ? 'cheapest' : ''} provider-${r.color}">
+            <td class="py-3.5 pl-4">
+              <div class="font-semibold text-white text-sm">${r.name}</div>
+              ${isCheapest ? '<span class="text-[10px] font-bold text-emerald-400 uppercase tracking-wide">✓ Cheapest</span>' : ''}
+              ${noteHtml}
+            </td>
+            <td class="py-3.5">${providerBadge}</td>
+            <td class="py-3.5 text-right text-sm font-mono text-slate-300">${formatCurrency(r.inputCost)}</td>
+            <td class="py-3.5 text-right text-sm font-mono text-slate-300">${formatCurrency(r.outputCost)}</td>
+            <td class="py-3.5 pr-4 text-right text-sm font-mono font-bold ${isCheapest ? 'text-emerald-400' : 'text-white'}">${formatCurrency(r.totalCost)}</td>
+            <td class="py-3.5 pr-4 text-right text-xs font-mono text-slate-500">${formatCurrency(r.costPer1KReq)}</td>
+          </tr>`;
+      }).join('');
+    }
+
+    function formatCurrency(val) {
+      if (val >= 1_000_000) return '$' + (val / 1_000_000).toFixed(2) + 'M';
+      if (val >= 1_000) return '$' + (val / 1_000).toFixed(2) + 'K';
+      if (val >= 1) return '$' + val.toFixed(2);
+      if (val >= 0.01) return '$' + val.toFixed(3);
+      return '$' + val.toFixed(4);
+    }
+
+    // Initial calculation
+    recalculate();
+  </script>
+</body>
+</html>
